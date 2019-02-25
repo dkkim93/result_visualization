@@ -3,7 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pylab as plot
 import numpy as np
-from utils import read_data_from_raw
+from utils import read_data_from_raw, moving_average
 
 sns.set_style("ticks")
 plt.rc('text', usetex=True)
@@ -16,7 +16,10 @@ def read_data(method, custom_param):
     seed_n = np.arange(10)
     data_n = []
     for seed_i, seed in enumerate(seed_n):
-        path = custom_param["base_path"] + "env::simple_spread_flip_seed::" + str(seed) + "_comment::" + method + "_log"
+        path = \
+            custom_param["base_path"] + \
+            "env::" + custom_param["env"] + \
+            "_seed::" + str(seed) + "_comment::" + method + "_log"
 
         # Read data
         data = read_data_from_raw(path, key=custom_param["key"], index=-1)
@@ -25,7 +28,8 @@ def read_data(method, custom_param):
             time = np.asarray(time)
 
         # Smooth data
-        # data = moving_average(data)
+        data_smooth = moving_average(data, periods=5)
+        data[len(data) - len(data_smooth):] = data_smooth
 
         data_n.append(data)
 
@@ -61,11 +65,23 @@ def vis_experiment(custom_param):
     ax.legend(frameon=True, framealpha=0.8)
 
     # Draw arrow 
-    plt.text(x=400., y=-0.9, s=r'\textbf{Before Distill}', fontsize=14)
-    plt.annotate(s='', xy=(3000, -1.), xytext=(0., -1.), arrowprops=dict(arrowstyle='<->'))
+    plt.text(
+        x=custom_param["text_before_at"],
+        y=custom_param["arrow_at"] + 0.1, 
+        s=r'\textbf{Before Distill}', fontsize=14)
+    plt.annotate(
+        s='', 
+        xy=(custom_param["distill_at"], custom_param["arrow_at"]), 
+        xytext=(0., custom_param["arrow_at"]), arrowprops=dict(arrowstyle='<->'))
 
-    plt.text(x=5500., y=-0.9, s=r'\textbf{After Distill}', fontsize=14)
-    plt.annotate(s='', xy=(3000, -1.), xytext=(10000., -1.), arrowprops=dict(arrowstyle='<->'))
+    plt.text(
+        x=custom_param["text_after_at"],
+        y=custom_param["arrow_at"] + 0.1, 
+        s=r'\textbf{After Distill}', fontsize=14)
+    plt.annotate(
+        s='', 
+        xy=(custom_param["distill_at"], custom_param["arrow_at"]), 
+        xytext=(time[-1], custom_param["arrow_at"]), arrowprops=dict(arrowstyle='<->'))
 
     plt.savefig(custom_param["save_name"], bbox_incehes="tight")
 
@@ -74,24 +90,78 @@ def main(args):
     if args.plot_option == "spread_2_agent":
         custom_param = {}
         custom_param["base_path"] = "data/simple_spread_flip/"
+        custom_param["env"] = "simple_spread_flip"
         custom_param["key"] = "Test Episode"
         custom_param["method_n"] = [
-            "no_distill",
             "distill_all",
+            "distill_critic_only",
             "distill_actor_only",
-            "distill_critic_only"]
+            "no_distill"]
         custom_param["legend_n"] = [
-            "No Distill",
             "Distill (All)",
+            "Distill (Critic Only)",
             "distill (Actor Only)",
-            "Distill (Critic Only)"]
+            "No Distill"]
+        custom_param["distill_at"] = 3000
+        custom_param["arrow_at"] = -1.05
+        custom_param["text_before_at"] = 350
+        custom_param["text_after_at"] = 5500
         custom_param["title"] = "Comparisons in Spread Domain (2 Agent)"
-        custom_param["ylim_min"] = -4.5
-        custom_param["ylim_max"] = -0.5
+        custom_param["ylim_min"] = -3.5
+        custom_param["ylim_max"] = -0.7
         custom_param["save_name"] = "spread_two_agent.png"
 
         vis_experiment(custom_param=custom_param)
 
+    elif args.plot_option == "spread_3_agent":
+        custom_param = {}
+        custom_param["base_path"] = "data/simple_spread_flip_3/"
+        custom_param["env"] = "simple_spread_flip_3"
+        custom_param["key"] = "Test Episode"
+        custom_param["method_n"] = [
+            "distill_all",
+            "distill_actor_only",
+            "distill_critic_only",
+            "no_distill"]
+        custom_param["legend_n"] = [
+            "Distill (All)",
+            "distill (Actor Only)",
+            "Distill (Critic Only)",
+            "No Distill"]
+        custom_param["distill_at"] = 4000
+        custom_param["text_before_at"] = 850
+        custom_param["text_after_at"] = 6000
+        custom_param["arrow_at"] = -1.25
+        custom_param["title"] = "Comparisons in Spread Domain (3 Agent)"
+        custom_param["ylim_min"] = -3.5
+        custom_param["ylim_max"] = -1.0
+        custom_param["save_name"] = "spread_three_agent.png"
+
+        vis_experiment(custom_param=custom_param)
+
+    elif args.plot_option == "spread_4_agent":
+        custom_param = {}
+        custom_param["base_path"] = "data/simple_spread_flip_4/"
+        custom_param["env"] = "simple_spread_flip_4"
+        custom_param["key"] = "Test Episode"
+        custom_param["method_n"] = [
+            "distill_all",
+            "distill_critic_only",
+            "distill_actor_only",
+            "no_distill"]
+        custom_param["legend_n"] = [
+            "Distill (All)",
+            "Distill (Critic Only)",
+            "distill (Actor Only)",
+            "No Distill"]
+        custom_param["distill_at"] = 5000
+        custom_param["arrow_at"] = -1.4
+        custom_param["title"] = "Comparisons in Spread Domain (4 Agent)"
+        custom_param["ylim_min"] = -4.0
+        custom_param["ylim_max"] = -1.0
+        custom_param["save_name"] = "spread_four_agent.png"
+
+        vis_experiment(custom_param=custom_param)
     else:
         raise ValueError("Invalid option")
 
@@ -101,7 +171,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--plot-option", type=str, required=True,
-        choices=["spread_2_agent"],
+        choices=["spread_2_agent", "spread_3_agent", "spread_4_agent"],
         help="Experiment to plot")
 
     args = parser.parse_args()

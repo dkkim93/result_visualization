@@ -10,14 +10,10 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 params = {'legend.fontsize': 12}
 plot.rcParams.update(params)
-BASE_DIR = "/home/dongki/research/lids/git/2018-hierarchical-teach/tmp/logs/"
-session_freq = 600
 
 
 def read_data(method, custom_param):
     seed_n = np.arange(10)
-    seed_n = [2, 3, 4, 5, 6, 7, 8, 9]
-
     data_n = []
     for seed_i, seed in enumerate(seed_n):
         path = custom_param["base_path"] + "env::simple_spread_flip_seed::" + str(seed) + "_comment::" + method + "_log"
@@ -58,27 +54,20 @@ def vis_experiment(custom_param):
         ax.plot(time, mean, label=legend)
         ax.margins(x=0)
 
+    plt.ylim([custom_param["ylim_min"], custom_param["ylim_max"]])
+    plt.xlabel(r'\textbf{Train Episode}', size=14)
+    plt.ylabel(r'\textbf{Evaluation Reward}', size=14)
+    plt.title(r'\textbf{' + custom_param["title"] + '}', size=15)
+    ax.legend(frameon=True, framealpha=0.8)
+
+    # Draw arrow 
     plt.text(x=400., y=-0.9, s=r'\textbf{Before Distill}', fontsize=14)
     plt.annotate(s='', xy=(3000, -1.), xytext=(0., -1.), arrowprops=dict(arrowstyle='<->'))
 
     plt.text(x=5500., y=-0.9, s=r'\textbf{After Distill}', fontsize=14)
     plt.annotate(s='', xy=(3000, -1.), xytext=(10000., -1.), arrowprops=dict(arrowstyle='<->'))
 
-    plt.ylim([-5., -0.5])
-    plt.xlabel(r'\textbf{Train Episode}', size=14)
-    plt.ylabel(r'\textbf{Evaluation Reward}', size=14)
-    plt.title(r'\textbf{' + custom_param["title"] + '}', size=15)
-    
-    ax.legend(frameon=True, framealpha=0.8)
-    # legend = plt.legend(
-    #     bbox_to_anchor=(0., 1.07, 1., .102), 
-    #     loc=3, 
-    #     ncol=2, 
-    #     mode="expand", 
-    #     borderaxespad=0.)
-
-    # TODO Save figure instead showing
-    plt.show()
+    plt.savefig(custom_param["save_name"], bbox_incehes="tight")
 
 
 def main(args):
@@ -97,6 +86,9 @@ def main(args):
             "distill (Actor Only)",
             "Distill (Critic Only)"]
         custom_param["title"] = "Comparisons in Spread Domain (2 Agent)"
+        custom_param["ylim_min"] = -4.5
+        custom_param["ylim_max"] = -0.5
+        custom_param["save_name"] = "spread_two_agent.png"
 
         vis_experiment(custom_param=custom_param)
 

@@ -1,2 +1,6 @@
 # Folders to ignore
 data/
+__pycache__/
+
+# Extensions to ignore
+*.pyc
